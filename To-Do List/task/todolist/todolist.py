@@ -29,11 +29,8 @@ session = Session()
 
 def menu():
     # function to display a menu to the user and returns user's selection
-    print("""1) Today's tasks
-2) Week's tasks
-3) All tasks
-4) Add task
-0) Exit""")
+    print("1) Today's tasks", "2) Week's tasks", "3) All tasks", "4) Missed tasks",
+          "5) Add task", "6) Delete task", "0) Exit", sep='\n')
     return input()
 
 
@@ -72,6 +69,37 @@ def add_task():
     print('The task has been added!\n')
 
 
+def missed_task(dates):
+    # function to find all tasks that are passed their respective deadline
+    tasks = session.query(Table).filter(Table.deadline < dates).order_by(Table.deadline).all()
+    if tasks:
+        print('\nMissed Tasks:')
+        n = 1
+        for instance in tasks:
+            print(f"{n}. {instance.task}. {instance.deadline.strftime('%d %b')}")
+            n += 1
+        print('\r')
+    else:
+        print('Nothing is missed!\n')
+
+
+def delete_task():
+    # function to delete a task from the _todo_ list
+    rows = session.query(Table).order_by(Table.deadline).all()
+    if rows:
+        print('\nChose the number of the task you want to delete:')
+        n = 1
+        for item in rows:
+            print(f"{n}. {item.task}. {item.deadline.strftime('%d %b')}\r")
+            n += 1
+        del_row = int(input())
+        session.delete(rows[(del_row - 1)])
+        session.commit()
+        print('The task has been deleted!\n')
+    else:
+        print('Nothing to delete\n')
+
+
 # while loop that cycles through the user menu until the user wishes to exit the program
 while True:
     today = datetime.today()
@@ -90,8 +118,14 @@ while True:
     elif choice == '3':  # display all tasks with deadline
         all_tasks()
         continue
-    elif choice == '4':  # add a task to your _todo_ list
+    elif choice == '4':  # displays tasks that are passed the deadline
+        missed_task(today.date())
+        continue
+    elif choice == '5':  # add a task to your _todo_ list
         add_task()
+        continue
+    elif choice == '6':  # allows user to delete tasks
+        delete_task()
         continue
     elif choice == '0':  # exit the program
         print('Bye!')
